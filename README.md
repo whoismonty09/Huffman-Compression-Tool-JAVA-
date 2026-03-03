@@ -123,6 +123,4 @@ It is not a basic console app — it implements a real-world compression algorit
 
 ## 👨‍💻 Author
 
-Mayank Malviya  
-BTech Electronics & Telecommunication  
-Aspiring AI/ML Engineer | Backend Developer
+
