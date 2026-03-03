@@ -1,109 +1,123 @@
-// Source code is decompiled from a .class file using FernFlower decompiler (from Intellij IDEA).
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.io.*;
+import java.util.*;
 
-public class HuffmanCompression {
-   private static Map<Character, String> huffmanCodes = new HashMap();
+class HuffmanNode implements Comparable<HuffmanNode> {
+    char character;
+    int frequency;
+    HuffmanNode left, right;
 
-   public HuffmanCompression() {
-   }
+    public HuffmanNode(char character, int frequency) {
+        this.character = character;
+        this.frequency = frequency;
+    }
 
-   public static Map<Character, Integer> buildFrequencyMap(String var0) {
-      HashMap var1 = new HashMap();
+    public HuffmanNode(int frequency, HuffmanNode left, HuffmanNode right) {
+        this.character = '\0';
+        this.frequency = frequency;
+        this.left = left;
+        this.right = right;
+    }
 
-      for(char var5 : var0.toCharArray()) {
-         var1.put(var5, (Integer)var1.getOrDefault(var5, 0) + 1);
-      }
-
-      return var1;
-   }
-
-   public static HuffmanNode buildHuffmanTree(Map<Character, Integer> var0) {
-      PriorityQueue var1 = new PriorityQueue();
-
-      for(Map.Entry var3 : var0.entrySet()) {
-         var1.add(new HuffmanNode((Character)var3.getKey(), (Integer)var3.getValue()));
-      }
-
-      while(var1.size() > 1) {
-         HuffmanNode var5 = (HuffmanNode)var1.poll();
-         HuffmanNode var6 = (HuffmanNode)var1.poll();
-         HuffmanNode var4 = new HuffmanNode(var5.frequency + var6.frequency, var5, var6);
-         var1.add(var4);
-      }
-
-      return (HuffmanNode)var1.poll();
-   }
-
-   public static void generateCodes(HuffmanNode var0, String var1) {
-      if (var0 != null) {
-         if (var0.left == null && var0.right == null) {
-            huffmanCodes.put(var0.character, var1);
-         }
-
-         generateCodes(var0.left, var1 + "0");
-         generateCodes(var0.right, var1 + "1");
-      }
-   }
-
-   public static String compress(String var0) {
-      StringBuilder var1 = new StringBuilder();
-
-      for(char var5 : var0.toCharArray()) {
-         var1.append((String)huffmanCodes.get(var5));
-      }
-
-      return var1.toString();
-   }
-
-   public static String decompress(String var0, HuffmanNode var1) {
-      StringBuilder var2 = new StringBuilder();
-      HuffmanNode var3 = var1;
-
-      for(char var7 : var0.toCharArray()) {
-         var3 = var7 == '0' ? var3.left : var3.right;
-         if (var3.left == null && var3.right == null) {
-            var2.append(var3.character);
-            var3 = var1;
-         }
-      }
-
-      return var2.toString();
-   }
-
-   public static void main(String[] var0) {
-      try {
-         String var1 = new String(Files.readAllBytes(Paths.get("input.txt")));
-         Map var2 = buildFrequencyMap(var1);
-         HuffmanNode var3 = buildHuffmanTree(var2);
-         generateCodes(var3, "");
-         String var4 = compress(var1);
-         FileWriter var5 = new FileWriter("compressed.bin");
-         var5.write(var4);
-         var5.close();
-         String var6 = decompress(var4, var3);
-         FileWriter var7 = new FileWriter("decompressed.txt");
-         var7.write(var6);
-         var7.close();
-         PrintStream var10000 = System.out;
-         int var10001 = var1.length();
-         var10000.println("Original Size: " + var10001 * 8 + " bits");
-         System.out.println("Compressed Size: " + var4.length() + " bits");
-         var10000 = System.out;
-         double var10 = (double)var4.length();
-         int var10002 = var1.length();
-         var10000.println("Compression Ratio: " + var10 / (double)(var10002 * 8));
-         System.out.println("Completed Successfully and developed by Monty");
-      } catch (IOException var8) {
-         var8.printStackTrace();
-      }
-
-   }
+    @Override
+    public int compareTo(HuffmanNode other) {
+        return this.frequency - other.frequency;
+    }
 }
 
+public class HuffmanCompression {
+
+    private static Map<Character, String> huffmanCodes = new HashMap<>();
+
+    public static Map<Character, Integer> buildFrequencyMap(String text) {
+        Map<Character, Integer> freqMap = new HashMap<>();
+        for (char c : text.toCharArray()) {
+            freqMap.put(c, freqMap.getOrDefault(c, 0) + 1);
+        }
+        return freqMap;
+    }
+
+    public static HuffmanNode buildHuffmanTree(Map<Character, Integer> freqMap) {
+        PriorityQueue<HuffmanNode> pq = new PriorityQueue<>();
+
+        for (Map.Entry<Character, Integer> entry : freqMap.entrySet()) {
+            pq.add(new HuffmanNode(entry.getKey(), entry.getValue()));
+        }
+
+        while (pq.size() > 1) {
+            HuffmanNode left = pq.poll();
+            HuffmanNode right = pq.poll();
+            HuffmanNode newNode = new HuffmanNode(left.frequency + right.frequency, left, right);
+            pq.add(newNode);
+        }
+
+        return pq.poll();
+    }
+
+    public static void generateCodes(HuffmanNode root, String code) {
+        if (root == null) return;
+
+        if (root.left == null && root.right == null) {
+            huffmanCodes.put(root.character, code);
+        }
+
+        generateCodes(root.left, code + "0");
+        generateCodes(root.right, code + "1");
+    }
+
+    public static String compress(String text) {
+        StringBuilder encoded = new StringBuilder();
+        for (char c : text.toCharArray()) {
+            encoded.append(huffmanCodes.get(c));
+        }
+        return encoded.toString();
+    }
+
+    public static String decompress(String encoded, HuffmanNode root) {
+        StringBuilder decoded = new StringBuilder();
+        HuffmanNode current = root;
+
+        for (char bit : encoded.toCharArray()) {
+            current = (bit == '0') ? current.left : current.right;
+
+            if (current.left == null && current.right == null) {
+                decoded.append(current.character);
+                current = root;
+            }
+        }
+
+        return decoded.toString();
+    }
+
+    public static void main(String[] args) {
+        try {
+            String text = new String(java.nio.file.Files.readAllBytes(
+                    java.nio.file.Paths.get("input.txt")));
+
+            Map<Character, Integer> freqMap = buildFrequencyMap(text);
+            HuffmanNode root = buildHuffmanTree(freqMap);
+            generateCodes(root, "");
+
+            String compressed = compress(text);
+
+            FileWriter fw = new FileWriter("compressed.bin");
+            fw.write(compressed);
+            fw.close();
+
+            String decompressed = decompress(compressed, root);
+
+            FileWriter fw2 = new FileWriter("decompressed.txt");
+            fw2.write(decompressed);
+            fw2.close();
+
+            System.out.println("Original Size: " + text.length() * 8 + " bits");
+            System.out.println("Compressed Size: " + compressed.length() + " bits");
+            System.out.println("Compression Ratio: " +
+                    ((double) compressed.length() / (text.length() * 8)));
+
+            System.out.println("Completed Successfully and developed by Monty");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
