@@ -124,4 +124,3 @@ It is not a basic console app — it implements a real-world compression algorit
 ## 👨‍💻 Author
 
 Developed by Monty
-
