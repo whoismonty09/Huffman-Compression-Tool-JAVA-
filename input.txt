@@ -1,1 +1,2 @@
-
+This is my Huffman compression project number 49
+Java is powerful
