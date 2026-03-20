@@ -1,4 +1,4 @@
-# 📦 Huffman File Compression Tool (Java)
+# 📦 Huffman File Compression Tool (JAVA)
 
 A file compression and decompression tool built using Java and the Huffman Coding algorithm.  
 This project demonstrates Greedy Algorithms, Priority Queues, Binary Trees, and File Handling.
